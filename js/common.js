@@ -4,8 +4,8 @@
     Author: Kushal Poudel, Alok Poudel, Rojal Shrestha, Pawan Rijal
     Date: 11/22/2025
     Filename:common.js
-    Purpose: This documents  handles backend logic to test prototype. It controls data, user authentication, cart, products, and state management
-    */
+    Purpose: Handles backend logic such as users, products, reviews, cart, state.
+*/
 
 // ===== Common data =====
 const JUTTA_STORAGE_KEY = "jutta_state_v1";
@@ -31,6 +31,7 @@ const defaultState = {
             ratings: [4, 4]
         }
     ],
+
     products: [
         {
             id: 1,
@@ -38,7 +39,7 @@ const defaultState = {
             price: 40,
             category: "men",
             type: "Sneaker",
-            image: "images/classicWhiteSneaker.png",
+            image: "jutta_imgs/classicWhiteSneaker.png",
             location: "Lake Charles",
             description: "Clean, minimal sneaker perfect for everyday wear.",
             sellerId: 1,
@@ -50,7 +51,7 @@ const defaultState = {
             price: 75,
             category: "men",
             type: "Boot",
-            image: "images/mustardWorkBoot.png",
+            image: "jutta_imgs/mustardWorkBoot.png",
             location: "Houston",
             description: "Rugged work boot with all-day comfort.",
             sellerId: 1,
@@ -62,7 +63,7 @@ const defaultState = {
             price: 55,
             category: "men",
             type: "Running Shoe",
-            image: "images/grayRunningShoes.png",
+            image: "jutta_imgs/grayRunningShoes.png",
             location: "Dallas",
             description: "Lightweight running shoe with breathable mesh.",
             sellerId: 1,
@@ -76,7 +77,7 @@ const defaultState = {
             price: 65,
             category: "women",
             type: "Boot",
-            image: "images/blackAnkleBoot.png",
+            image: "jutta_imgs/blackAnkleBoot.png",
             location: "Houston",
             description: "Sleek black ankle boot with a chunky sole, perfect for everyday wear.",
             sellerId: 1,
@@ -89,7 +90,7 @@ const defaultState = {
             price: 60,
             category: "women",
             type: "Flat",
-            image: "images/maryJaneFlat.png",
+            image: "jutta_imgs/maryJaneFlat.png",
             location: "Austin",
             description: "Soft blush pink Mary Jane flat with a buckle strap for a feminine look.",
             sellerId: 1,
@@ -102,21 +103,21 @@ const defaultState = {
             price: 55,
             category: "women",
             type: "Sandal",
-            image: "images/espadrilleSlideSandal.png",
+            image: "jutta_imgs/espadrilleSlideSandal.png",
             location: "Dallas",
             description: "Casual espadrille slide sandal with a woven rope sole and open toe.",
             sellerId: 1,
             reviews: []
         },
 
-        // KID'S SHOES
+        // KIDS
         {
             id: 7,
             name: "Blue Thunder Kids Sneaker",
             price: 35,
             category: "kids",
             type: "Sneaker",
-            image: "images/blueThunderKidsSneaker.png",
+            image: "jutta_imgs/blueThunderKidsSneaker.png",
             location: "Lake Charles",
             description: "Lightweight blue kids sneaker with a lightning design and comfy cushioning.",
             sellerId: 1,
@@ -129,7 +130,7 @@ const defaultState = {
             price: 30,
             category: "kids",
             type: "Sandal",
-            image: "images/desertBreezeSandal.png",
+            image: "jutta_imgs/desertBreezeSandal.png",
             location: "Houston",
             description: "Soft tan strap sandal with adjustable closures and a cushioned footbed.",
             sellerId: 1,
@@ -142,19 +143,19 @@ const defaultState = {
             price: 40,
             category: "kids",
             type: "Boot",
-            image: "images/miniExplorerBrownBoot.png",
+            image: "jutta_imgs/miniExplorerBrownBoot.png",
             location: "Dallas",
             description: "Sturdy brown kids boot with grippy sole for playground adventures.",
             sellerId: 1,
             reviews: []
         },
     ],
+
     cart: [],
     currentUserId: null
 };
 
-
-// ===== helpers =====
+// ===== Helper functions =====
 function loadState() {
     const raw = localStorage.getItem(JUTTA_STORAGE_KEY);
     if (!raw) return structuredClone(defaultState);
@@ -170,12 +171,10 @@ function saveState(state) {
 
 let state = loadState();
 
-// current user helper
 function getCurrentUser() {
     return state.users.find(u => u.id === state.currentUserId) || null;
 }
 
-// basic sanitization
 function clean(str) {
     if (str == null) return "";
     const trimmed = str.trim();
@@ -192,7 +191,7 @@ async function hashPassword(plain) {
         .join("");
 }
 
-// rating utilities
+// Ratings
 function avgRating(arr) {
     if (!arr || arr.length === 0) return "No ratings";
     const s = arr.reduce((a, b) => a + b, 0);
@@ -205,7 +204,7 @@ function productAvgRating(product) {
     return (s / product.reviews.length).toFixed(1);
 }
 
-// cart utilities
+// Cart
 function addToCart(productId) {
     const item = state.cart.find(c => c.productId === productId);
     if (item) item.qty += 1;
@@ -228,7 +227,7 @@ function removeFromCart(productId) {
     saveState(state);
 }
 
-// authencation
+// Authentication
 async function registerUser({ username, email, password, role }) {
     username = clean(username);
     email = clean(email);
@@ -273,7 +272,6 @@ async function loginUser({ username, password }) {
     return u;
 }
 
-//LOGOUT FUNCTION 
 function logoutUser() {
     state.currentUserId = null;
     saveState(state);
@@ -282,12 +280,13 @@ function logoutUser() {
     window.location.href = "login.html";
 }
 
-// create product from Sell page
+// Create product (Sell page)
 function createProduct({ name, price, category, image, location, description }) {
     const current = getCurrentUser();
     if (!current || current.role !== "seller") {
         throw new Error("Must be logged in as seller.");
     }
+
     name = clean(name);
     location = clean(location);
     description = clean(description);
@@ -303,18 +302,19 @@ function createProduct({ name, price, category, image, location, description }) 
         name,
         price: Number(price),
         category,
-        image: image || "images/placeholder-shoe.png",
+        image: image || "jutta_imgs/placeholder-shoe.png",
         location,
         sellerId: current.id,
         description,
         reviews: []
     };
+
     state.products.push(prod);
     saveState(state);
     return prod;
 }
 
-// review
+// Add review
 function addReview(productId, rating, comment) {
     const user = getCurrentUser();
     if (!user) throw new Error("Login required");
@@ -334,7 +334,6 @@ function addReview(productId, rating, comment) {
     saveState(state);
 }
 
-// small helper to show current user in header/footer
 function renderAuthStatus(elementId) {
     const el = document.getElementById(elementId);
     if (!el) return;
